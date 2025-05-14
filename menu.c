@@ -50,7 +50,7 @@ void lobby (Isi_Tree P, int maks_node) {
             case 4 :
                 clearScreen();
                 printf ("Urutan tree berdasarkan Traversal PreOrder {level by level} :\n");
-                Level_order(P,maks_node);
+                Level_order(P);
                 getchar();
                 break;
             case 5 :

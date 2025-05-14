@@ -67,101 +67,148 @@ boolean IsEmpty (Isi_Tree P) {
 
 /***** Traversal *****/
 void PreOrder (Isi_Tree P) {
-    if (IsEmpty(P)) return;
+    if (IsEmpty(P)) {
+        printf("Tree kosong!\n");
+        return;
+    }
 
+    // Gunakan array untuk stack dengan ukuran yang aman
     address stack[jml_maks];
-    int top = -1, i;
-
-    stack[++top] = 1;
+    int top = -1;
+    int maxStackSize = jml_maks - 1;
+    
+    // Push root node
+    if (top < maxStackSize) {
+        stack[++top] = 1;
+    }
+    
     while (top >= 0) {
+        // Pop current node
         address current = stack[top--];
-        printf ("%c --> ", P[current].info);
-
-        address child = P[current].ps_fs;
-        address temp[jml_maks];
-        int count = 0;
-
-        while (child != nil) {
-            temp[count++] = child;
-            child = P[child].ps_nb;
-        }
-
-        for (i = count - 1;i>=0;i--){
-            stack[++top] = temp[i];
+        if (current != nil) {
+            printf("%c ", P[current].info);
+            
+            // Simpan anak-anak dalam urutan terbalik (agar diproses dari kiri ke kanan)
+            address child = P[current].ps_fs;
+            address tempStack[jml_maks];
+            int tempTop = -1;
+            
+            // Kumpulkan semua siblings
+            while (child != nil && tempTop < maxStackSize) {
+                tempStack[++tempTop] = child;
+                child = P[child].ps_nb;
+            }
+            
+            // Push siblings ke stack utama dalam urutan terbalik
+            while (tempTop >= 0 && top < maxStackSize) {
+                stack[++top] = tempStack[tempTop--];
+            }
         }
     }
+    printf("\n");
 }
 
 void InOrder (Isi_Tree P) {
-    if (IsEmpty(P)) return;
+    if (IsEmpty(P)) {
+        printf("Tree kosong!\n");
+        return;
+    }
 
     address stack[jml_maks];
     int top = -1;
-    address current = 1;
+    int maxStackSize = jml_maks - 1;
+    address current = 1;  // Start dari root
 
-    while (current != nil || top >=0) {
+    while (current != nil || top >= 0) {
+        // Traverse ke first child sampai tidak ada lagi
         while (current != nil) {
-            stack[++top] = current;
-            current = P[current].ps_fs;
+            if (top < maxStackSize) {
+                stack[++top] = current;
+                current = P[current].ps_fs;
+            } else {
+                printf("\nError: Stack overflow!\n");
+                return;
+            }
         }
 
-        current = stack[top--];
-        printf ("%c --> ", P[current].info);
+        if (top >= 0) {
+            current = stack[top--];
+            printf("%c ", P[current].info);
 
-        current = P[current].ps_nb;
+            // Pindah ke next sibling
+            current = P[current].ps_nb;
+        }
     }
+    printf("\n");
 }
 
 void PostOrder (Isi_Tree P) {
-    if (IsEmpty(P)) return;
+    if (IsEmpty(P)) {
+        printf("Tree kosong!\n");
+        return;
+    }
 
-    address stack1[jml_maks];
-    address stack2[jml_maks];
-    int top1 = -1, top2 = -1;
+    address stack[jml_maks];
+    int top = -1;
+    int maxStackSize = jml_maks - 1;
+    address current = 1;  // Start dari root
+    address lastVisited = nil;
 
-    stack1[++top1] = 1;
+    while (current != nil || top >= 0) {
+        // Traverse sampai first child paling dalam
+        while (current != nil) {
+            if (top < maxStackSize) {
+                stack[++top] = current;
+                current = P[current].ps_fs;
+            } else {
+                printf("\nError: Stack overflow!\n");
+                return;
+            }
+        }
 
-    while (top1 >= 0 ) {
-        address current = stack1[top1--];
-        stack2[++top2] = current;
-
-        address child = P[current].ps_fs;
-        while (child != nil) {
-            stack1[++top1] = child;
-            child = P[child].ps_nb;
+        // Peek at the top node
+        address peek = stack[top];
+        
+        // Jika node punya sibling dan belum dikunjungi
+        if (P[peek].ps_nb != nil && lastVisited != P[peek].ps_nb) {
+            current = P[peek].ps_nb;
+        } else {
+            // Proses node saat ini
+            printf("%c ", P[peek].info);
+            lastVisited = stack[top--];
         }
     }
-
-    while (top2 >= 0) {
-        printf("%c --> ", P[stack2[top2--]].info);
-    }
-
+    printf("\n");
 }
 
-void Level_order(Isi_Tree X, int Maks_node) {
+void Level_order(Isi_Tree X) {
     if (IsEmpty(X)) {
         printf("Tree kosong!\n");
         return;
     }
 
-    if (Maks_node <=0 || Maks_node >jml_maks) {
-        Maks_node = jml_maks;
-    }
-
     address queue[jml_maks];
     int front = 0, rear = 0;
+    int maxQueueSize = jml_maks - 1;
+
+    // Enqueue root
     queue[rear++] = 1;
 
-    while (front < Maks_node && front < rear) {
-        address current = queue [front++];
-        printf("%c --> ", X[current].info);
+    while (front < rear) {
+        // Dequeue current node
+        address current = queue[front++];
+        printf("%c ", X[current].info);
 
+        // Enqueue semua children
         address child = X[current].ps_fs;
-        while (child != nil && rear < Maks_node) {
-            if (rear < Maks_node) {
+        while (child != nil) {
+            if (rear < maxQueueSize) {
                 queue[rear++] = child;
+                child = X[child].ps_nb;
+            } else {
+                printf("\nError: Queue overflow!\n");
+                return;
             }
-            child = X[child].ps_nb;
         }
     }
     printf("\n");
